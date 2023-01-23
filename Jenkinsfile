@@ -4,7 +4,7 @@ pipeline {
     stages {
     stage('StageBranch') {
             steps {
-                sh "git branch staging"
+                //sh "git branch staging"
                 sh "git checkout staging"
                 sh "git pull origin dev"
                 sh "git push origin staging"

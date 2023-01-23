@@ -22,7 +22,7 @@ pipeline {
         }
         stage('DockerBuild') {
             steps {
-                sh "docker build --privileged -t jenkins-tp ."
+                sh "docker build -t jenkins-tp ."
             }
         }
             /*stage('DockerRun') {

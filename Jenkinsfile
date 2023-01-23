@@ -35,7 +35,8 @@ pipeline {
                 sh "docker tag jenkins-tp tutus94/jenkins-tp:jenkins-tp"
                 sh "docker push tutus94/jenkins-tp:jenkins-tp"
             }
-        }         stage('MergeToMain') {
+        }
+        stage('MergeToMain') {
             steps{
                 sh "git branch"
                 sh "git checkout master"

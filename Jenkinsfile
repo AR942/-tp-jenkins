@@ -20,19 +20,6 @@ pipeline {
                 sh "python3 test_main.py "
             }
         }
-        stage('Tkt'){
-            steps{
-                sh "docker run \
-                    -u root \
-                    --name jenkins_lts \
-                    -d \
-                    -p 8080:8080 \
-                    -v jenkins-data:/var/jenkins_home \
-                    -v /var/run/docker.sock:/var/run/docker.sock \
-                    -v $(which docker):/usr/bin/docker
-                    jenkins/jenkins:lts-slim"
-            }
-        }
         stage('DockerBuild') {
             steps {
                 sh "docker build -t jenkins-tp ."

@@ -1,6 +1,7 @@
 pipeline {
     agent any 
-stages {
+
+    stages {
         stage('StageBranch') {
             steps {
                 //sh "git branch staging"

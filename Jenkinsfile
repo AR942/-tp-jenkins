@@ -40,9 +40,9 @@ pipeline {
         stage('MergeToMain') {
             steps{
                 sh "git branch"
-                sh "git checkout master"
-                sh "git pull -f origin master"
-                sh "git push -f origin staging:master"
+                sh "git checkout main"
+                sh "git pull -f origin main"
+                sh "git push -f origin main"
             }
         }
     }   

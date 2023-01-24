@@ -41,7 +41,7 @@ pipeline {
             steps{
                 sh "git checkout main"
                 sh "git pull origin main"
-                sh "git merge stage"
+                sh "git merge staging"
                 sh "git push origin main"
             }
         }

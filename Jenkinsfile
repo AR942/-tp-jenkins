@@ -32,7 +32,7 @@ pipeline {
         }*/
         stage('DockerPush') {
             steps{
-                sh "docker login --username=tutus94 --password=Star94220@"
+                sh "docker login --username= --password=```"
                 sh "docker tag jenkins-tp tutus94/jenkins-tp:jenkins-tp"
                 sh "docker push tutus94/jenkins-tp:jenkins-tp"
             }

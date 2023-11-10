@@ -2,71 +2,38 @@
 .dockerignore
 Dockerfile
 
-# Import des bibliothèques nécessaires
+Dockerfile
+
 import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
-from scipy.stats import t
-from datetime import timedelta
 
-# Chargement des données
-# Supposons que votre dataframe s'appelle 'data' avec des colonnes 'date' et 'licenses'
-# Assurez-vous que la colonne 'date' est au format datetime
+# Supposons que 'model' est votre modèle déjà entraîné
 
-# Ajout des jours fériés français comme feature
-# Assurez-vous d'avoir un fichier ou une source pour les jours fériés
-ferie_dates = pd.to_datetime(['2022-01-01', '2022-04-04', '2022-05-01', '2022-05-08', '2022-07-14', '2022-08-15', '2022-11-01', '2022-11-11', '2022-12-25'])
-
-data['is_holiday'] = data['date'].isin(ferie_dates).astype(int)
-
-# Feature engineering supplémentaire
-data['day_of_week'] = data['date'].dt.dayofweek
-data['day_of_month'] = data['date'].dt.day
-data['month'] = data['date'].dt.month
-data['year'] = data['date'].dt.year
-
-# Création de la colonne 'licenses_prev_day'
-data['licenses_prev_day'] = data['licenses'].shift(1)
-
-# Division des données en ensemble d'entraînement et de test
-X_train, X_test, y_train, y_test = train_test_split(data.drop(['date', 'licenses'], axis=1), data['licenses'], test_size=0.2, random_state=42)
-
-# Entraînement du modèle
-model = LinearRegression()
-model.fit(X_train, y_train)
-
-# Prédiction sur l'ensemble de test
-y_pred = model.predict(X_test)
-
-# Calcul de l'intervalle de confiance
-confidence = 0.95
-mse = mean_squared_error(y_test, y_pred)
-ci = t.interval(confidence, len(y_test) - 1, loc=y_pred.mean(), scale=stats.sem(y_pred))
-lower_bound, upper_bound = ci
-
-# Prédiction pour une semaine, un mois et six mois à partir de la dernière date disponible
+# Trouvez la dernière date dans vos données
 last_date = data['date'].max()
 
-# Fonction pour obtenir la date future
-def get_future_date(base_date, days):
-    return base_date + pd.Timedelta(days=days)
+# Créez une liste de dates futures jusqu'en novembre
+future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), end='2023-11-01', freq='D')
 
-# Prédiction pour une semaine
-future_week = get_future_date(last_date, 7)
-week_prediction = model.predict([[future_week.dayofweek, future_week.day, future_week.month, future_week.year, data['licenses'].iloc[-1], future_week in ferie_dates]])
+# Ajoutez une colonne pour indiquer les week-ends (1 pour le week-end, 0 sinon)
+future_dates_df = pd.DataFrame({'date': future_dates})
+future_dates_df['is_weekend'] = (future_dates_df['date'].dt.dayofweek >= 5).astype(int)
 
-# Prédiction pour un mois
-future_month = get_future_date(last_date, 30)
-month_prediction = model.predict([[future_month.dayofweek, future_month.day, future_month.month, future_month.year, data['licenses'].iloc[-1], future_month in ferie_dates]])
+# Préparez les données pour la prédiction en ajoutant les features nécessaires
+future_data = pd.DataFrame({
+    'day_of_week': future_dates_df['date'].dt.dayofweek,
+    'day_of_month': future_dates_df['date'].dt.day,
+    'month': future_dates_df['date'].dt.month,
+    'year': future_dates_df['date'].dt.year,
+    'licenses_prev_day': data['licenses'].iloc[-1],  # ou utilisez une valeur par défaut appropriée
+    'is_holiday': future_dates_df['date'].isin(ferie_dates).astype(int),
+    'is_weekend': future_dates_df['is_weekend']
+})
 
-# Prédiction pour six mois
-future_six_months = get_future_date(last_date, 180)
-six_months_prediction = model.predict([[future_six_months.dayofweek, future_six_months.day, future_six_months.month, future_six_months.year, data['licenses'].iloc[-1], future_six_months in ferie_dates]])
+# Effectuez la prédiction
+predictions = model.predict(future_data)
 
-# Affichage des résultats
-print(f"Intervalle de confiance (95%): [{lower_bound}, {upper_bound}]")
-print(f"Prédiction pour une semaine: {week_prediction[0]}")
-print(f"Prédiction pour un mois: {month_prediction[0]}")
-print(f"Prédiction pour six mois: {six_months_prediction[0]}")
+# Créez un DataFrame avec les dates et les prédictions
+predictions_df = pd.DataFrame({'date': future_dates, 'predicted_licenses': predictions})
+
+# Affichez les résultats
+print(predictions_df)

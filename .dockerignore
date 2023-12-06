@@ -5,35 +5,55 @@ Dockerfile
 Dockerfile
 
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Supposons que 'model' est votre modèle déjà entraîné
+# Charger le dataset (remplace 'ton_fichier.csv' par le nom de ton fichier)
+df = pd.read_csv('ton_fichier.csv')
 
-# Trouvez la dernière date dans vos données
-last_date = data['date'].max()
+# Explorer les premières lignes du dataset
+print(df.head())
 
-# Créez une liste de dates futures jusqu'en novembre
-future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), end='2023-11-01', freq='D')
+# Vérifier les types de données et la présence de valeurs manquantes
+print(df.info())
 
-# Ajoutez une colonne pour indiquer les week-ends (1 pour le week-end, 0 sinon)
-future_dates_df = pd.DataFrame({'date': future_dates})
-future_dates_df['is_weekend'] = (future_dates_df['date'].dt.dayofweek >= 5).astype(int)
+# Statistiques descriptives
+print(df.describe())
 
-# Préparez les données pour la prédiction en ajoutant les features nécessaires
-future_data = pd.DataFrame({
-    'day_of_week': future_dates_df['date'].dt.dayofweek,
-    'day_of_month': future_dates_df['date'].dt.day,
-    'month': future_dates_df['date'].dt.month,
-    'year': future_dates_df['date'].dt.year,
-    'licenses_prev_day': data['licenses'].iloc[-1],  # ou utilisez une valeur par défaut appropriée
-    'is_holiday': future_dates_df['date'].isin(ferie_dates).astype(int),
-    'is_weekend': future_dates_df['is_weekend']
-})
+# Compter le nombre d'occurrences de chaque règle
+plt.figure(figsize=(10, 6))
+sns.countplot(x='rule_tag', data=df)
+plt.title('Nombre d\'occurrences par règle')
+plt.xticks(rotation=45)
+plt.show()
 
-# Effectuez la prédiction
-predictions = model.predict(future_data)
+# Distribution du Count
+plt.figure(figsize=(10, 6))
+sns.histplot(df['Count'], bins=30, kde=True)
+plt.title('Distribution du Count')
+plt.show()
 
-# Créez un DataFrame avec les dates et les prédictions
-predictions_df = pd.DataFrame({'date': future_dates, 'predicted_licenses': predictions})
+# Boxplot par règle pour le Count
+plt.figure(figsize=(12, 8))
+sns.boxplot(x='rule_tag', y='Count', data=df)
+plt.title('Boxplot du Count par règle')
+plt.xticks(rotation=45)
+plt.show()
 
-# Affichez les résultats
-print(predictions_df)
+# Lineplot pour observer les tendances temporelles
+plt.figure(figsize=(14, 8))
+sns.lineplot(x='hour_log', y='Count', hue='rule_tag', data=df)
+plt.title('Tendances temporelles par règle')
+plt.show()
+
+# Heatmap de la corrélation entre les variables numériques
+correlation_matrix = df.corr()
+plt.figure(figsize=(10, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+plt.title('Matrice de corrélation')
+plt.show()
+
+# Pairplot pour explorer les relations entre les variables numériques
+sns.pairplot(df, hue='rule_tag')
+plt.suptitle('Pairplot', y=1.02)
+plt.show()

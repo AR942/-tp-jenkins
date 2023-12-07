@@ -4,7 +4,33 @@ Dockerfile
 
 Dockerfile
 
-https://snaptwitter.com/fr#google_vignette')
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Charger le dataset (remplace 'ton_fichier.csv' par le nom de ton fichier)
+df = pd.read_csv('ton_fichier.csv')
+
+# Explorer les premières lignes du dataset
+print(df.head())
+
+# Vérifier les types de données et la présence de valeurs manquantes
+print(df.info())
+
+# Statistiques descriptives
+print(df.describe())
+
+# Compter le nombre d'occurrences de chaque règle
+plt.figure(figsize=(10, 6))
+sns.countplot(x='rule_tag', data=df)
+plt.title('Nombre d\'occurrences par règle')
+plt.xticks(rotation=45)
+plt.show()
+
+# Distribution du Count
+plt.figure(figsize=(10, 6))
+sns.histplot(df['Count'], bins=30, kde=True)
+plt.title('Distribution du Count')
 plt.show()
 
 # Boxplot par règle pour le Count
@@ -21,7 +47,8 @@ plt.title('Tendances temporelles par règle')
 plt.show()
 
 # Heatmap de la corrélation entre les variables numériques
-correlation_matrix = df.corr()
+df_numerique = df.select_dtypes(include=['float64', 'int64'])
+correlation_matrix = df_numerique.corr()
 plt.figure(figsize=(10, 8))
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
 plt.title('Matrice de corrélation')
@@ -31,3 +58,49 @@ plt.show()
 sns.pairplot(df, hue='rule_tag')
 plt.suptitle('Pairplot', y=1.02)
 plt.show()
+
+# Visualisation de la distribution des variables catégoriques
+colonnes_catégoriques = df.select_dtypes(include=['object']).columns
+for col in colonnes_catégoriques:
+    plt.figure(figsize=(10, 6))
+    sns.countplot(x=col, data=df)
+    plt.title(f'Distribution de {col}')
+    plt.xticks(rotation=45)
+    plt.show()
+
+# Analyse des valeurs manquantes
+plt.figure(figsize=(10, 6))
+sns.heatmap(df.isnull(), cbar=False, cmap='viridis')
+plt.title('Valeurs manquantes dans le dataset')
+plt.show()
+
+missing_values = df.isnull().sum()
+print(missing_values[missing_values > 0].sort_values(ascending=False))
+
+# Exploration des relations entre les variables catégoriques et numériques
+for col in colonnes_catégoriques:
+    plt.figure(figsize=(12, 8))
+    sns.boxplot(x=col, y='Count', data=df)
+    plt.title(f'Boxplot de Count en fonction de {col}')
+    plt.xticks(rotation=45)
+    plt.show()
+
+# Analyse des tendances temporelles
+df['annee'] = df['hour_log'].dt.year
+df['mois'] = df['hour_log'].dt.month
+df['jour'] = df['hour_log'].dt.day
+df['heure'] = df['hour_log'].dt.hour
+
+plt.figure(figsize=(16, 8))
+sns.lineplot(x='mois', y='Count', hue='rule_tag', data=df)
+plt.title('Tendances mensuelles par règle')
+plt.show()
+
+# Analyse des valeurs uniques dans chaque colonne
+for col in df.columns:
+    unique_values = df[col].nunique()
+    print(f"{col}: {unique_values} valeurs uniques")
+
+# Corrélation spécifique entre deux colonnes
+correlation_specific = df[['Colonne1', 'Colonne2']].corr()
+print(correlation_specific)

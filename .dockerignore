@@ -4,33 +4,7 @@ Dockerfile
 
 Dockerfile
 
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# Charger le dataset (remplace 'ton_fichier.csv' par le nom de ton fichier)
-df = pd.read_csv('ton_fichier.csv')
-
-# Explorer les premières lignes du dataset
-print(df.head())
-
-# Vérifier les types de données et la présence de valeurs manquantes
-print(df.info())
-
-# Statistiques descriptives
-print(df.describe())
-
-# Compter le nombre d'occurrences de chaque règle
-plt.figure(figsize=(10, 6))
-sns.countplot(x='rule_tag', data=df)
-plt.title('Nombre d\'occurrences par règle')
-plt.xticks(rotation=45)
-plt.show()
-
-# Distribution du Count
-plt.figure(figsize=(10, 6))
-sns.histplot(df['Count'], bins=30, kde=True)
-plt.title('Distribution du Count')
+https://snaptwitter.com/fr#google_vignette')
 plt.show()
 
 # Boxplot par règle pour le Count

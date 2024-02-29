@@ -1,1 +1,109 @@
-flask
+import pandas as pd
+
+# Charger les données
+data = pd.read_csv('votre_fichier.csv')  # Assurez-vous de remplacer 'votre_fichier.csv' par le nom de votre fichier
+
+# Sélectionner les colonnes pertinentes
+columns_of_interest = ['source', 'src_user', 'src_ip', 'mitre_tactic', 'mitre_technique_id']
+relevant_data = data[columns_of_interest]
+
+# Analyse de la forme des données
+print(relevant_data.info())
+
+# Nombre total d'entrées et nombre de colonnes
+print("Nombre total d'entrées :", len(relevant_data))
+print("Nombre de colonnes :", len(relevant_data.columns))
+
+# Identification des valeurs manquantes
+missing_values = relevant_data.isnull().sum()
+print("\nValeurs manquantes par colonne :\n", missing_values)
+
+# Charger les données
+data = pd.read_csv('votre_fichier.csv')  # Assurez-vous de remplacer 'votre_fichier.csv' par le nom de votre fichier
+
+# Sélectionner les colonnes pertinentes
+columns_of_interest = ['source', 'src_user', 'src_ip', 'mitre_tactic', 'mitre_technique_id']
+relevant_data = data[columns_of_interest]
+
+# Analyse de la forme des données
+print(relevant_data.info())
+
+# Nombre total d'entrées et nombre de colonnes
+print("Nombre total d'entrées :", len(relevant_data))
+print("Nombre de colonnes :", len(relevant_data.columns))
+
+# Identification des valeurs manquantes
+missing_values = relevant_data.isnull().sum()
+print("\nValeurs manquantes par colonne :\n", missing_values)
+
+# Affichage des statistiques descriptives
+print("\nStatistiques descriptives :\n", relevant_data.describe())
+
+# Visualisation de la distribution des valeurs pour chaque colonne
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Histogrammes pour les variables catégorielles
+plt.figure(figsize=(12, 6))
+for i, column in enumerate(relevant_data.columns, 1):
+    plt.subplot(2, 3, i)
+    sns.countplot(x=column, data=relevant_data)
+    plt.title(f'Distribution de {column}')
+    plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Affichage des statistiques descriptives
+print("\nStatistiques descriptives :\n", relevant_data.describe())
+
+# Visualisation de la distribution des valeurs pour chaque colonne
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Histogrammes pour les variables catégorielles
+plt.figure(figsize=(12, 6))
+for i, column in enumerate(relevant_data.columns, 1):
+    plt.subplot(2, 3, i)
+    sns.countplot(x=column, data=relevant_data)
+    plt.title(f'Distribution de {column}')
+    plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Création d'un tableau croisé dynamique
+pivot_table = pd.crosstab(relevant_data['source'], relevant_data['mitre_tactic'])
+
+# Affichage du tableau croisé dynamique
+print("\nTableau croisé dynamique (source vs mitre_tactic) :\n", pivot_table)
+
+# Visualisation avec un diagramme en barres empilées
+pivot_table.plot(kind='bar', stacked=True, figsize=(10, 6))
+plt.title('Relation entre source et mitre_tactic')
+plt.xlabel('Source')
+plt.ylabel("Nombre d'occurrences")
+plt.xticks(rotation=45)
+plt.legend(title='mitre_tactic')
+plt.show()
+
+# Création d'un tableau croisé dynamique pour la relation entre 'src_user' et 'src_ip'
+pivot_table_src = pd.crosstab(relevant_data['src_user'], relevant_data['src_ip'])
+
+# Affichage du tableau croisé dynamique
+print("\nTableau croisé dynamique (src_user vs src_ip) :\n", pivot_table_src)
+
+# Affichage d'un heatmap pour la relation entre 'src_user' et 'src_ip'
+plt.figure(figsize=(10, 6))
+sns.heatmap(pivot_table_src, cmap='coolwarm', annot=True, fmt='d')
+plt.title('Relation entre src_user et src_ip')
+plt.xlabel('src_ip')
+plt.ylabel('src_user')
+plt.show()
+
+# Calcul de la corrélation entre les variables
+correlation_matrix = relevant_data.corr()
+
+# Visualisation de la matrice de corrélation sous forme de heatmap
+plt.figure(figsize=(10, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+plt.title('Matrice de corrélation')
+plt.show()

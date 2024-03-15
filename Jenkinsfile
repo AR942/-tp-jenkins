@@ -47,3 +47,25 @@ pipeline {
         }
     }   
 }
+
+import matplotlib.pyplot as plt
+
+# Supposons que 'user_id' est l'identifiant de l'utilisateur que vous souhaitez visualiser
+user_id = '123'
+
+# Filtrer les données pour l'utilisateur spécifique
+user_data = data[data['user'] == user_id]
+
+# Agréger les données par intervalles de 4 heures
+user_data_grouped = user_data.groupby(pd.Grouper(key='_time', freq='4H')).size().reset_index(name='count')
+
+# Créer un graphique temporel
+plt.figure(figsize=(10, 6))
+plt.plot(user_data_grouped['_time'], user_data_grouped['count'], marker='o')
+plt.xlabel('Time')
+plt.ylabel('Activity Count')
+plt.title('User Activity Over Time')
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.tight_layout()
+plt.show()

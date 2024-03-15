@@ -49,6 +49,7 @@ pipeline {
 }
 
 import matplotlib.pyplot as plt
+import pandas as pd
 
 # Supposons que 'user_id' est l'identifiant de l'utilisateur que vous souhaitez visualiser
 user_id = '123'
@@ -56,16 +57,18 @@ user_id = '123'
 # Filtrer les données pour l'utilisateur spécifique
 user_data = data[data['user'] == user_id]
 
-# Agréger les données par intervalles de 4 heures
-user_data_grouped = user_data.groupby(pd.Grouper(key='_time', freq='4H')).size().reset_index(name='count')
+# Agréger les données par intervalles de temps et compter le nombre de scores touchés
+user_data_grouped = user_data.groupby(pd.Grouper(key='_time', freq='4H'))['score_ALL', 'score_CA', 'score_CC', 'score_CO', 'score_DE', 'score_DI', 'score_EF', 'score_EX', 'score_IA', 'score_IM', 'score_LM', 'score_MT', 'score_PE', 'score_PT', 'score_RE'].sum()
 
 # Créer un graphique temporel
 plt.figure(figsize=(10, 6))
-plt.plot(user_data_grouped['_time'], user_data_grouped['count'], marker='o')
+for column in user_data_grouped.columns:
+    plt.plot(user_data_grouped.index, user_data_grouped[column], label=column)
 plt.xlabel('Time')
-plt.ylabel('Activity Count')
-plt.title('User Activity Over Time')
+plt.ylabel('Number of Scores Touched')
+plt.title('Number of Scores Touched Over Time for User ' + user_id)
 plt.xticks(rotation=45)
+plt.legend()
 plt.grid(True)
 plt.tight_layout()
 plt.show()

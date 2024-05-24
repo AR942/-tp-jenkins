@@ -1,109 +1,90 @@
 import pandas as pd
-
-# Charger les données
-data = pd.read_csv('votre_fichier.csv')  # Assurez-vous de remplacer 'votre_fichier.csv' par le nom de votre fichier
-
-# Sélectionner les colonnes pertinentes
-columns_of_interest = ['source', 'src_user', 'src_ip', 'mitre_tactic', 'mitre_technique_id']
-relevant_data = data[columns_of_interest]
-
-# Analyse de la forme des données
-print(relevant_data.info())
-
-# Nombre total d'entrées et nombre de colonnes
-print("Nombre total d'entrées :", len(relevant_data))
-print("Nombre de colonnes :", len(relevant_data.columns))
-
-# Identification des valeurs manquantes
-missing_values = relevant_data.isnull().sum()
-print("\nValeurs manquantes par colonne :\n", missing_values)
-
-# Charger les données
-data = pd.read_csv('votre_fichier.csv')  # Assurez-vous de remplacer 'votre_fichier.csv' par le nom de votre fichier
-
-# Sélectionner les colonnes pertinentes
-columns_of_interest = ['source', 'src_user', 'src_ip', 'mitre_tactic', 'mitre_technique_id']
-relevant_data = data[columns_of_interest]
-
-# Analyse de la forme des données
-print(relevant_data.info())
-
-# Nombre total d'entrées et nombre de colonnes
-print("Nombre total d'entrées :", len(relevant_data))
-print("Nombre de colonnes :", len(relevant_data.columns))
-
-# Identification des valeurs manquantes
-missing_values = relevant_data.isnull().sum()
-print("\nValeurs manquantes par colonne :\n", missing_values)
-
-# Affichage des statistiques descriptives
-print("\nStatistiques descriptives :\n", relevant_data.describe())
-
-# Visualisation de la distribution des valeurs pour chaque colonne
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy.stats import ks_2samp
 
-# Histogrammes pour les variables catégorielles
-plt.figure(figsize=(12, 6))
-for i, column in enumerate(relevant_data.columns, 1):
-    plt.subplot(2, 3, i)
-    sns.countplot(x=column, data=relevant_data)
-    plt.title(f'Distribution de {column}')
-    plt.xticks(rotation=45)
-plt.tight_layout()
+# Charger les datasets
+# Remplacer 'path_to_full_dataset.csv' et 'path_to_russian_dataset.csv' par les chemins réels de vos fichiers
+full_dataset = pd.read_csv('path_to_full_dataset.csv')
+russian_dataset = pd.read_csv('path_to_russian_dataset.csv')
+
+# Comparaison des pourcentages de valeurs manquantes
+missing_full = full_dataset.isnull().mean() * 100
+missing_russian = russian_dataset.isnull().mean() * 100
+
+missing_comparison = pd.DataFrame({
+    'Full Dataset': missing_full,
+    'Russian Dataset': missing_russian
+})
+
+print("Pourcentage de valeurs manquantes dans chaque colonne:")
+print(missing_comparison)
+
+# Comparaison des statistiques descriptives
+stats_full = full_dataset.describe(include='all')
+stats_russian = russian_dataset.describe(include='all')
+
+print("\nStatistiques descriptives du dataset complet:")
+print(stats_full)
+
+print("\nStatistiques descriptives du dataset russe:")
+print(stats_russian)
+
+# Comparaison des distributions des valeurs uniques
+unique_values_full = full_dataset.nunique()
+unique_values_russian = russian_dataset.nunique()
+
+unique_comparison = pd.DataFrame({
+    'Full Dataset': unique_values_full,
+    'Russian Dataset': unique_values_russian
+})
+
+print("\nNombre de valeurs uniques dans chaque colonne:")
+print(unique_comparison)
+
+# Comparaison des distributions des valeurs numériques
+numeric_cols = full_dataset.select_dtypes(include=[np.number]).columns
+
+for col in numeric_cols:
+    plt.figure(figsize=(12, 6))
+    sns.kdeplot(full_dataset[col].dropna(), label='Full Dataset', shade=True)
+    sns.kdeplot(russian_dataset[col].dropna(), label='Russian Dataset', shade=True)
+    plt.title(f'Distribution de {col}')
+    plt.legend()
+    plt.show()
+
+# Test statistique pour comparer les distributions (Kolmogorov-Smirnov test)
+ks_test_results = {}
+
+for col in numeric_cols:
+    ks_stat, ks_p_value = ks_2samp(full_dataset[col].dropna(), russian_dataset[col].dropna())
+    ks_test_results[col] = {'KS Statistic': ks_stat, 'p-value': ks_p_value}
+
+ks_test_df = pd.DataFrame(ks_test_results).T
+
+print("\nRésultats du test Kolmogorov-Smirnov pour comparer les distributions:")
+print(ks_test_df)
+
+# Comparaison des matrices de corrélation
+corr_full = full_dataset.corr()
+corr_russian = russian_dataset.corr()
+
+plt.figure(figsize=(14, 7))
+sns.heatmap(corr_full, annot=True, cmap='coolwarm')
+plt.title('Matrice de corrélation - Dataset complet')
 plt.show()
 
-# Affichage des statistiques descriptives
-print("\nStatistiques descriptives :\n", relevant_data.describe())
-
-# Visualisation de la distribution des valeurs pour chaque colonne
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# Histogrammes pour les variables catégorielles
-plt.figure(figsize=(12, 6))
-for i, column in enumerate(relevant_data.columns, 1):
-    plt.subplot(2, 3, i)
-    sns.countplot(x=column, data=relevant_data)
-    plt.title(f'Distribution de {column}')
-    plt.xticks(rotation=45)
-plt.tight_layout()
+plt.figure(figsize=(14, 7))
+sns.heatmap(corr_russian, annot=True, cmap='coolwarm')
+plt.title('Matrice de corrélation - Dataset russe')
 plt.show()
 
-# Création d'un tableau croisé dynamique
-pivot_table = pd.crosstab(relevant_data['source'], relevant_data['mitre_tactic'])
-
-# Affichage du tableau croisé dynamique
-print("\nTableau croisé dynamique (source vs mitre_tactic) :\n", pivot_table)
-
-# Visualisation avec un diagramme en barres empilées
-pivot_table.plot(kind='bar', stacked=True, figsize=(10, 6))
-plt.title('Relation entre source et mitre_tactic')
-plt.xlabel('Source')
-plt.ylabel("Nombre d'occurrences")
-plt.xticks(rotation=45)
-plt.legend(title='mitre_tactic')
-plt.show()
-
-# Création d'un tableau croisé dynamique pour la relation entre 'src_user' et 'src_ip'
-pivot_table_src = pd.crosstab(relevant_data['src_user'], relevant_data['src_ip'])
-
-# Affichage du tableau croisé dynamique
-print("\nTableau croisé dynamique (src_user vs src_ip) :\n", pivot_table_src)
-
-# Affichage d'un heatmap pour la relation entre 'src_user' et 'src_ip'
-plt.figure(figsize=(10, 6))
-sns.heatmap(pivot_table_src, cmap='coolwarm', annot=True, fmt='d')
-plt.title('Relation entre src_user et src_ip')
-plt.xlabel('src_ip')
-plt.ylabel('src_user')
-plt.show()
-
-# Calcul de la corrélation entre les variables
-correlation_matrix = relevant_data.corr()
-
-# Visualisation de la matrice de corrélation sous forme de heatmap
-plt.figure(figsize=(10, 8))
-sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
-plt.title('Matrice de corrélation')
-plt.show()
+# Optionnel: Enregistrer les résultats dans des fichiers CSV pour une inspection plus détaillée
+missing_comparison.to_csv('missing_comparison.csv')
+stats_full.to_csv('stats_full_dataset.csv')
+stats_russian.to_csv('stats_russian_dataset.csv')
+unique_comparison.to_csv('unique_comparison.csv')
+ks_test_df.to_csv('ks_test_results.csv')
+corr_full.to_csv('corr_full_dataset.csv')
+corr_russian.to_csv('corr_russian_dataset.csv')

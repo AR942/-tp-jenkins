@@ -1,90 +1,16 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy.stats import ks_2samp
+categorical_cols = full_dataset.select_dtypes(include=['object']).columns
 
-# Charger les datasets
-# Remplacer 'path_to_full_dataset.csv' et 'path_to_russian_dataset.csv' par les chemins réels de vos fichiers
-full_dataset = pd.read_csv('path_to_full_dataset.csv')
-russian_dataset = pd.read_csv('path_to_russian_dataset.csv')
-
-# Comparaison des pourcentages de valeurs manquantes
-missing_full = full_dataset.isnull().mean() * 100
-missing_russian = russian_dataset.isnull().mean() * 100
-
-missing_comparison = pd.DataFrame({
-    'Full Dataset': missing_full,
-    'Russian Dataset': missing_russian
-})
-
-print("Pourcentage de valeurs manquantes dans chaque colonne:")
-print(missing_comparison)
-
-# Comparaison des statistiques descriptives
-stats_full = full_dataset.describe(include='all')
-stats_russian = russian_dataset.describe(include='all')
-
-print("\nStatistiques descriptives du dataset complet:")
-print(stats_full)
-
-print("\nStatistiques descriptives du dataset russe:")
-print(stats_russian)
-
-# Comparaison des distributions des valeurs uniques
-unique_values_full = full_dataset.nunique()
-unique_values_russian = russian_dataset.nunique()
-
-unique_comparison = pd.DataFrame({
-    'Full Dataset': unique_values_full,
-    'Russian Dataset': unique_values_russian
-})
-
-print("\nNombre de valeurs uniques dans chaque colonne:")
-print(unique_comparison)
-
-# Comparaison des distributions des valeurs numériques
-numeric_cols = full_dataset.select_dtypes(include=[np.number]).columns
-
-for col in numeric_cols:
+for col in categorical_cols:
     plt.figure(figsize=(12, 6))
-    sns.kdeplot(full_dataset[col].dropna(), label='Full Dataset', shade=True)
-    sns.kdeplot(russian_dataset[col].dropna(), label='Russian Dataset', shade=True)
-    plt.title(f'Distribution de {col}')
+    full_counts = full_dataset[col].value_counts(normalize=True)
+    russian_counts = russian_dataset[col].value_counts(normalize=True)
+    
+    # Combiner les deux séries pour éviter les valeurs manquantes
+    combined_counts = pd.concat([full_counts, russian_counts], axis=1, keys=['Full Dataset', 'Russian Dataset']).fillna(0)
+    
+    combined_counts.plot(kind='bar', figsize=(12, 6))
+    plt.title(f'Distribution des catégories pour {col}')
+    plt.xlabel(col)
+    plt.ylabel('Proportion')
     plt.legend()
     plt.show()
-
-# Test statistique pour comparer les distributions (Kolmogorov-Smirnov test)
-ks_test_results = {}
-
-for col in numeric_cols:
-    ks_stat, ks_p_value = ks_2samp(full_dataset[col].dropna(), russian_dataset[col].dropna())
-    ks_test_results[col] = {'KS Statistic': ks_stat, 'p-value': ks_p_value}
-
-ks_test_df = pd.DataFrame(ks_test_results).T
-
-print("\nRésultats du test Kolmogorov-Smirnov pour comparer les distributions:")
-print(ks_test_df)
-
-# Comparaison des matrices de corrélation
-corr_full = full_dataset.corr()
-corr_russian = russian_dataset.corr()
-
-plt.figure(figsize=(14, 7))
-sns.heatmap(corr_full, annot=True, cmap='coolwarm')
-plt.title('Matrice de corrélation - Dataset complet')
-plt.show()
-
-plt.figure(figsize=(14, 7))
-sns.heatmap(corr_russian, annot=True, cmap='coolwarm')
-plt.title('Matrice de corrélation - Dataset russe')
-plt.show()
-
-# Optionnel: Enregistrer les résultats dans des fichiers CSV pour une inspection plus détaillée
-missing_comparison.to_csv('missing_comparison.csv')
-stats_full.to_csv('stats_full_dataset.csv')
-stats_russian.to_csv('stats_russian_dataset.csv')
-unique_comparison.to_csv('unique_comparison.csv')
-ks_test_df.to_csv('ks_test_results.csv')
-corr_full.to_csv('corr_full_dataset.csv')
-corr_russian.to_csv('corr_russian_dataset.csv')
